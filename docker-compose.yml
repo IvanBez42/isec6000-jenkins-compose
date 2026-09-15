@@ -4,18 +4,18 @@ services:
   dind:
     image: docker:dind
     container_name: dind
-    privileged: true
-    user: root
+    privileged: true # required for dind
+    user: root # required for dind, isolated container
     networks:
       jenkins:
         aliases:
-          - docker
+          - docker # reachable as tcp://docker:2376
     environment:
-      - DOCKER_TLS_CERTDIR=/certs
+      - DOCKER_TLS_CERTDIR=/certs # enforce TLS
     volumes:
-      - docker-certs-ca:/certs/ca
-      - docker-certs-client:/certs/client
-      - jenkins-data:/var/jenkins_home
+      - docker-certs-ca:/certs/ca # CA cert
+      - docker-certs-client:/certs/client # client cert
+      - docker-build-artefacts:/var/lib/docker # persist build artefacts
 
   # Jenkins builds dockers via dind #
   jenkins:
@@ -26,22 +26,23 @@ services:
       - dind
     networks:
       - jenkins
-    user: root
+    security_opt:
+      - no-new-privileges:true # block privilege escalation
     environment:
-      - DOCKER_HOST=tcp://docker:2376
+      - DOCKER_HOST=tcp://docker:2376 # point at dind
       - DOCKER_CERT_PATH=/certs/client
-      - DOCKER_TLS_VERIFY=1
+      - DOCKER_TLS_VERIFY=1 # enforce TLS
     volumes:
-      - docker-certs-client:/certs/client:ro
-      - jenkins-data:/var/jenkins_home
-      - /usr/bin/docker:/usr/bin/docker
+      - docker-certs-client:/certs/client:ro # read-only cert
+      - jenkins-data:/var/jenkins_home # persist Jenkins data
+      - /usr/bin/docker:/usr/bin/docker # borrow host docker CLI
     ports:
-      - "8080:8080"
-      - "50000:50000"
+      - "8080:8080" # Jenkins web UI, firewall-restricted
 
 volumes:
   docker-certs-ca:
   docker-certs-client:
+  docker-build-artefacts:
   jenkins-data:
 
 networks:
