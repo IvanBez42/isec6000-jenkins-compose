@@ -37,7 +37,7 @@ services:
       - jenkins-data:/var/jenkins_home # persist Jenkins data
       - /usr/bin/docker:/usr/bin/docker # borrow host docker CLI
     ports:
-      - "8080:8080" # Jenkins web UI, firewall-restricted
+      - "127.0.0.1:8080:8080" # Jenkins web UI, loopback only
 
 volumes:
   docker-certs-ca:
