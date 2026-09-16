@@ -16,6 +16,7 @@ services:
       - docker-certs-ca:/certs/ca # CA cert
       - docker-certs-client:/certs/client # client cert
       - docker-build-artefacts:/var/lib/docker # persist build artefacts
+      - jenkins-data:/var/jenkins_home # causing errors on jenkins so going back to guide
 
   # Jenkins builds dockers via dind #
   jenkins:
